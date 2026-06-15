@@ -1,11 +1,12 @@
 """Idempotent synthetic Pakistani housing-society data.
 
-Wipes and reseeds. NO real developer data — all generated.
+Wipes and reseeds. NO real developer data Ã¢â‚¬â€ all generated.
 """
 import secrets
 import random
 from app.core.db import SessionLocal, engine, Base
 from app.models import models as m
+from app.core.security import hash_password
 
 PROJECTS = [
     ("Bahria Town Phase 8", "Rawalpindi"),
@@ -54,16 +55,16 @@ def seed():
 
         admin = m.Agent(
             email="admin@demo.com",
-            hashed_password="placeholder",
+            hashed_password=hash_password("demo1234"),
             role="admin",
             api_key="admin_" + secrets.token_hex(16),
         )
         agent_a = m.Agent(
-            email="agent_a@demo.com", hashed_password="placeholder",
+            email="agent_a@demo.com", hashed_password=hash_password("demo1234"),
             role="agent", api_key="agentA_" + secrets.token_hex(16),
         )
         agent_b = m.Agent(
-            email="agent_b@demo.com", hashed_password="placeholder",
+            email="agent_b@demo.com", hashed_password=hash_password("demo1234"),
             role="agent", api_key="agentB_" + secrets.token_hex(16),
         )
         db.add_all([admin, agent_a, agent_b])

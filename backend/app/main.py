@@ -1,11 +1,10 @@
 """InventoryLive API entrypoint."""
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import inventory
+from app.routers import inventory, auth
 
 app = FastAPI(title="InventoryLive API")
 
-# CORS open for local dev; tighten before deploy (Phase 6)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -13,6 +12,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(auth.router)
 app.include_router(inventory.router)
 
 
