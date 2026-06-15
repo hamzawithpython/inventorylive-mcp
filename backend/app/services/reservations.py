@@ -24,7 +24,6 @@ def reserve_unit(db: Session, agent: m.Agent, unit_id: int,
     source: 'portal' or 'mcp' — recorded in the audit log so we can show
     which door the action came through.
     """
-    # Lock the unit row for the duration of this transaction.
     unit = (
         db.query(m.Unit)
         .filter(m.Unit.id == unit_id)
@@ -34,7 +33,6 @@ def reserve_unit(db: Session, agent: m.Agent, unit_id: int,
     if unit is None:
         raise ReservationError("Unit not found")
 
-    # Permission check — same chokepoint as reads.
     permitted = get_permitted_block_ids(db, agent)
     if not is_block_allowed(permitted, unit.block_id):
         raise ReservationError("Not permitted to reserve this unit")
@@ -42,7 +40,6 @@ def reserve_unit(db: Session, agent: m.Agent, unit_id: int,
     if unit.status != "available":
         raise ReservationError(f"Unit is {unit.status}, not available")
 
-    # Flip status + bump optimistic-lock version.
     unit.status = "reserved"
     unit.version += 1
     expires_at = datetime.now(timezone.utc) + timedelta(minutes=HOLD_MINUTES)
@@ -60,16 +57,20 @@ def reserve_unit(db: Session, agent: m.Agent, unit_id: int,
     db.refresh(unit)
 
     return {
-        "unit_id": unit.id, "status": unit.status, "version": unit.version,
-        "reserved_by": agent.id, "expires_at": expires_at.isoformat(),
+        "unit_id": unit.id,
+        "block_id": unit.block_id,
+        "status": unit.status,
+        "version": unit.version,
+        "reserved_by": agent.id,
+        "expires_at": expires_at.isoformat(),
         "source": source,
     }
 
 
-def release_expired(db: Session) -> list[int]:
-    """Flip expired holds back to available. Returns affected unit_ids.
+def release_expired(db: Session) -> list[tuple[int, int, int]]:
+    """Flip expired holds back to available.
 
-    Called by the background sweeper (and re-usable for tests).
+    Returns list of (unit_id, block_id, version) for broadcasting.
     """
     now = datetime.now(timezone.utc)
     expired = (
@@ -78,7 +79,7 @@ def release_expired(db: Session) -> list[int]:
                 m.Reservation.expires_at < now)
         .all()
     )
-    affected: list[int] = []
+    affected: list[tuple[int, int, int]] = []
     for r in expired:
         unit = (
             db.query(m.Unit).filter(m.Unit.id == r.unit_id)
@@ -87,7 +88,7 @@ def release_expired(db: Session) -> list[int]:
         if unit and unit.status == "reserved":
             unit.status = "available"
             unit.version += 1
-            affected.append(unit.id)
+            affected.append((unit.id, unit.block_id, unit.version))
         r.status = "expired"
         db.add(m.AuditLog(
             actor_id=None, action="hold_expired", unit_id=r.unit_id,
