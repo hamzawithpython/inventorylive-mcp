@@ -58,6 +58,11 @@ app.include_router(reservations.router)
 app.include_router(ws.router)
 
 
+@app.get("/")
+def root():
+    return {"service": "InventoryLive API", "docs": "/docs", "health": "/health"}
+
+
 @app.get("/health")
 def health():
     return {"status": "ok"}
