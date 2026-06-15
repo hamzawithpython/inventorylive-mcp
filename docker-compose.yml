@@ -1,0 +1,15 @@
+services:
+  db:
+    image: postgres:16
+    container_name: inventorylive-db
+    environment:
+      POSTGRES_USER: inv
+      POSTGRES_PASSWORD: invpass
+      POSTGRES_DB: inventorylive
+    ports:
+      - "5440:5432"
+    volumes:
+      - inventorylive_pgdata:/var/lib/postgresql/data
+
+volumes:
+  inventorylive_pgdata:
