@@ -5,6 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routers import inventory, auth, reservations, ws
 from app.core.db import SessionLocal
+from app.core.config import settings
 from app.services.reservations import release_expired
 from app.services.ws_manager import manager
 
@@ -12,12 +13,11 @@ SWEEP_INTERVAL_SECONDS = 30
 
 
 async def hold_sweeper():
-    """Periodically release expired holds and broadcast each change."""
     while True:
         await asyncio.sleep(SWEEP_INTERVAL_SECONDS)
         db = SessionLocal()
         try:
-            freed = release_expired(db)  # list of (unit_id, block_id, version)
+            freed = release_expired(db)
             for unit_id, block_id, version in freed:
                 await manager.broadcast_unit_change(block_id, {
                     "type": "unit_changed",
@@ -46,7 +46,8 @@ app = FastAPI(title="InventoryLive API", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=settings.cors_list,
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
