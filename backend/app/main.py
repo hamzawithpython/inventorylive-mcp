@@ -1,13 +1,14 @@
-"""InventoryLive API entrypoint with background hold-expiry sweeper."""
+"""InventoryLive API entrypoint: REST + WebSocket + mounted MCP server."""
 import asyncio
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import inventory, auth, reservations, ws
+from app.routers import inventory, auth, reservations, ws, ask
 from app.core.db import SessionLocal
 from app.core.config import settings
 from app.services.reservations import release_expired
 from app.services.ws_manager import manager
+from app.mcp_server import mcp
 
 SWEEP_INTERVAL_SECONDS = 30
 
@@ -20,12 +21,9 @@ async def hold_sweeper():
             freed = release_expired(db)
             for unit_id, block_id, version in freed:
                 await manager.broadcast_unit_change(block_id, {
-                    "type": "unit_changed",
-                    "unit_id": unit_id,
-                    "status": "available",
-                    "version": version,
-                    "by": None,
-                    "source": "system",
+                    "type": "unit_changed", "unit_id": unit_id,
+                    "status": "available", "version": version,
+                    "by": None, "source": "system",
                 })
             if freed:
                 print(f"[sweeper] released + broadcast: {[u for u,_,_ in freed]}")
@@ -56,6 +54,10 @@ app.include_router(auth.router)
 app.include_router(inventory.router)
 app.include_router(reservations.router)
 app.include_router(ws.router)
+app.include_router(ask.router)
+
+# Mount the MCP server (HTTP/SSE) as a sub-app at /mcp.
+app.mount("/mcp", mcp.sse_app())
 
 
 @app.get("/")

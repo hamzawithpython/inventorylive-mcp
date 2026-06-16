@@ -40,3 +40,16 @@ export async function reserveUnit(token, unitId) {
   if (!res.ok) throw new Error(data.detail || "Reserve failed");
   return data;
 }
+export async function askAI(token, question) {
+  const res = await fetch(`${import.meta.env.VITE_API_BASE}/api/ask`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ question }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.detail || "AI query failed");
+  return data; // { answer, tools_used }
+}

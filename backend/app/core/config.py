@@ -8,13 +8,14 @@ class Settings(BaseSettings):
     jwt_secret: str = "dev-secret"
     jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = 480
-    cors_origins: str = "*"  # comma-separated list in prod
+    cors_origins: str = "*"
+    groq_api_key: str = ""
+    groq_model: str = "llama-3.3-70b-versatile"
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     @property
     def sqlalchemy_url(self) -> str:
-        """Normalize to the psycopg2 driver form SQLAlchemy expects."""
         url = self.database_url
         if url.startswith("postgresql://"):
             url = url.replace("postgresql://", "postgresql+psycopg2://", 1)
