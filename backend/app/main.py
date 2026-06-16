@@ -10,6 +10,11 @@ from app.services.reservations import release_expired
 from app.services.ws_manager import manager
 from app.mcp_server import mcp
 
+# Build the MCP streamable-HTTP ASGI app once. Its session manager must have
+# its lifecycle started (see lifespan below) or requests raise
+# "Task group is not initialized".
+mcp_app = mcp.streamable_http_app()
+
 SWEEP_INTERVAL_SECONDS = 30
 
 
@@ -36,7 +41,9 @@ async def hold_sweeper():
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     task = asyncio.create_task(hold_sweeper())
-    yield
+    # Start the MCP streamable-HTTP session manager for the app''s lifetime.
+    async with mcp.session_manager.run():
+        yield
     task.cancel()
 
 
@@ -56,8 +63,8 @@ app.include_router(reservations.router)
 app.include_router(ws.router)
 app.include_router(ask.router)
 
-# Mount the MCP server (HTTP/SSE) as a sub-app at /mcp.
-app.mount("/mcp", mcp.sse_app())
+# Mount the prebuilt MCP app (streamable HTTP) at /mcp-server.
+app.mount("/mcp-server", mcp_app)
 
 
 @app.get("/")
