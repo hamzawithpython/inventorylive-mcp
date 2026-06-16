@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { fetchUnits, reserveUnit } from "./api";
 import { useLiveUpdates } from "./useLiveUpdates";
+import AskAI from "./AskAI";
 
 function formatPKR(n) {
   const num = Number(n);
@@ -69,6 +70,8 @@ export default function Portal({ token, role, email, onLogout }) {
         <span className="pill sold">{counts.sold || 0} sold</span>
         <span className="live-dot">live</span>
       </div>
+
+      <AskAI token={token} />
 
       {loading ? (
         <p className="loading">Loading inventory...</p>

@@ -37,3 +37,19 @@ header { display: flex; justify-content: space-between; align-items: center; mar
 .unit-status { font-size: .7rem; text-transform: uppercase; letter-spacing: .05em; color: #6b7280; margin-bottom: .5rem; }
 .unit button { width: 100%; padding: .5rem; border: 0; border-radius: 7px; background: #3b82f6; color: #fff; font-weight: 600; cursor: pointer; }
 .loading { color: #8b919c; }
+/* Ask AI */
+.askai { margin-bottom: 1.25rem; }
+.askai-toggle { background: #1e293b; border: 1px solid #334155; color: #93c5fd; padding: .55rem 1rem; border-radius: 8px; cursor: pointer; font-weight: 600; }
+.askai-panel { margin-top: .75rem; background: #141821; border: 1px solid #2c303a; border-radius: 12px; padding: 1rem; }
+.askai-hint { color: #8b919c; font-size: .82rem; margin: 0 0 .75rem; }
+.askai-examples { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: .75rem; }
+.chip { background: #0f1115; border: 1px solid #2c303a; color: #cbd5e1; font-size: .75rem; padding: .35rem .6rem; border-radius: 999px; cursor: pointer; }
+.chip:hover { border-color: #3b82f6; }
+.askai-input { display: flex; gap: .5rem; }
+.askai-input input { flex: 1; padding: .6rem; border: 1px solid #2c303a; border-radius: 8px; background: #0f1115; color: #e6e8eb; }
+.askai-input button { padding: .6rem 1.1rem; border: 0; border-radius: 8px; background: #3b82f6; color: #fff; font-weight: 600; cursor: pointer; }
+.askai-input button:disabled { opacity: .6; }
+.askai-answer { margin-top: .9rem; }
+.answer-text { white-space: pre-wrap; line-height: 1.5; }
+.tools-trace { margin-top: .6rem; font-size: .72rem; color: #6b7280; }
+.tools-trace code { background: #0f1115; border: 1px solid #2c303a; border-radius: 5px; padding: .1rem .35rem; margin-right: .3rem; }
